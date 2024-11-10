@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 )
 
@@ -17,8 +18,8 @@ func TestFileRotate(t *testing.T) {
 	defer os.RemoveAll(tmpDir)
 
 	opt := Options{
-		MaxCount:     10,
-		MaxSize:      1_000_000,
+		MaxCount:     3,
+		MaxSize:      100_000,
 		ZStdCompress: true,
 	}
 	filename := filepath.Join(tmpDir, "test.log")
@@ -28,9 +29,16 @@ func TestFileRotate(t *testing.T) {
 	}
 	defer fr.Close()
 	// Make sure we write enough to rotate through MaxCount entries
-	for i := 0; i < 1000000; i++ {
-		fmt.Fprintf(fr, "Log entry %d\n", i)
+	wg := sync.WaitGroup{}
+	count := 50_000
+	wg.Add(count)
+	for i := 0; i < count; i++ {
+		go func() {
+			fmt.Fprintf(fr, "Log entry %d\n", i)
+			wg.Done()
+		}()
 	}
+	wg.Wait()
 
 	// Verify files were created and rotated
 	files, err := filepath.Glob(filepath.Join(tmpDir, "test.log*"))
