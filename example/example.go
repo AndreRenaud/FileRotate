@@ -13,6 +13,7 @@ func main() {
 	maxSize := flag.Int("maxSize", 1000000, "Maximum size of each file (in bytes)")
 	zstdCompress := flag.Bool("zstdCompress", true, "Compress rotated files with zstd")
 	makeDirs := flag.Bool("makeDirs", true, "Create directories as needed")
+	count := flag.Int("count", 1000000, "Number of log lines to write")
 	flag.Parse()
 
 	opt := FileRotate.Options{
@@ -29,7 +30,7 @@ func main() {
 
 	log.SetOutput(fr)
 
-	for i := 0; i < 1000000; i++ {
+	for i := 0; i < *count; i++ {
 		log.Printf("Log entry %d\n", i)
 	}
 }
